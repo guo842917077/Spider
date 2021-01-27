@@ -1,0 +1,5 @@
+include ':spider'
+include ':annotation'
+include ':annotationProcess'
+include ':app'
+rootProject.name = "AnnotationProcessTest"
