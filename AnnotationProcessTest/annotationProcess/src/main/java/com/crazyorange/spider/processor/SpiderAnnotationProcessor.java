@@ -76,11 +76,10 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
             }
             // 将 Group 信息收集起来，用来生成 Group 节点
             collectionGroupInfo(annotationNode);
-            // 1. 生成 group 节点
-            // 2. 将所有 group 节点保存到 root 节点中
         }
+        // 1. 生成 group 节点
         generatorGroupClass();
-
+        // 2. 将所有生成的 group 节点都保存到 root 类中
         return true;
     }
 
@@ -128,7 +127,7 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
             // 创建 group method 的构建对象
 
             MethodSpec groupMethod = loadMethod.build();
-            String className = "SpiderTest" + groupName;
+            String className = Constant.SPIDER_GROUP_CLASS_PREFIX + groupName;
             JavaFile file = JavaFile.builder(Constant.GROUP_PACKAGE,
                     TypeSpec.classBuilder(className)
                             .addSuperinterface(className(Constant.GROUP_INTERFACE_ISPIDER_GROUP))

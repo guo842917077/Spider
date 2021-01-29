@@ -6,6 +6,8 @@ public class Constant {
      */
     public static final String SEPARATOR = "$$";
     public static final String PROJECT = "Spider";
+    public static final String SPIDER_GROUP_CLASS_PREFIX = PROJECT + "Group" + SEPARATOR;
+    public static final String SPIDER_ROOT_CLASS_PREFIX = PROJECT + "Root" + SEPARATOR;
 
     public static final String GROUP_PACKAGE = "com.crazyorange.spider.group";
     public static final String GROUP_INTERFACE_ISPIDER_GROUP =

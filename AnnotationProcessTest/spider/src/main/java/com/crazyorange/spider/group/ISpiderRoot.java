@@ -1,4 +1,4 @@
-package com.crazyorange.spider;
+package com.crazyorange.spider.group;
 
 import com.crazyorange.spider.group.ISpiderGroup;
 
