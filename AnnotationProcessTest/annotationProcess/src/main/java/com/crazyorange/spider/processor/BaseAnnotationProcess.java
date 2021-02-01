@@ -40,6 +40,7 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
 
     protected TypeMirror mParcelableType;
     protected TypeMirror mSerializableType;
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         super.init(processingEnvironment);
@@ -139,6 +140,16 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
     }
 
     /**
+     * 去指定包下找对应的类
+     * @param pkgName 包名
+     * @param className 类名
+     * @return
+     */
+    public ClassName className(String pkgName, String className) {
+        return ClassName.get(pkgName, className);
+    }
+
+    /**
      * 一个具像的类 非抽象类
      */
     public boolean isConcreteType(Element element) {
@@ -146,6 +157,7 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
         return element instanceof TypeElement && !element.getModifiers().contains(
                 Modifier.ABSTRACT);
     }
+
     // ARouter 中将 Java 的类型对应了 ParamType 中的自定义类型
     public int translateType(Element element) {
         TypeMirror typeMirror = element.asType();

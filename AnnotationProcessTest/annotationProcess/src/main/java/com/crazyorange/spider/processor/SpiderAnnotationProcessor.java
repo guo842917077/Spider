@@ -13,12 +13,13 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -74,7 +75,7 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
             if (isActivity(element) || isFragment(element)) {
                 // generator param code
                 Map<String, Integer> paramCollection = new HashMap<>();
-                generatorParamCode(element, paramCollection);
+                collectParamInject(element, paramCollection);
                 if (isActivity(element)) {
                     processLog("Spider annotation is Activity ");
                     annotationNode = new AnnotationNode(NodeType.ACTIVITY, routerAnnotation,
@@ -140,7 +141,7 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
                         node.getPageAnnotation().group().toLowerCase(),
                         className
                 );
-                codeBuilder.addStatement(Constant.PARAM_GROUP_NAME + ".put($S,$L)", node.getPageAnnotation().path()
+                codeBuilder.addStatement(Constant.PARAM_NAME + ".put($S,$L)", node.getPageAnnotation().path()
                         , createNode.build());
                 loadMethod.addCode(codeBuilder.build());
             }
@@ -162,6 +163,54 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
                 e.printStackTrace();
             }
         }
+        generatorRootClass();
+    }
+
+    /**
+     * public class Spider$$Root implements ISpiderRoot {
+     *   @Override
+     *   public void load(Map<String, Class<? extends ISpiderGroup>> container) {
+     *     container.put("moudle", SpiderGroup$$moudle.class);
+     *   }
+     * }
+     * 使用 WildcardTypeName.subtypeOf 实现带边界的泛型类型 <? extents XXClass></?>
+     */
+    private void generatorRootClass() {
+        String className = Constant.SPIDER_ROOT_CLASS_PREFIX;
+        // Map<String, Class<? extends ISpiderGroup>> container
+        ParameterizedTypeName paramType = ParameterizedTypeName.get(
+                ClassName.get(Map.class),
+                ClassName.get(String.class),
+                ParameterizedTypeName.get(
+                        ClassName.get(Class.class),
+                        // Class<? extends ISpiderGroup>
+                        WildcardTypeName.subtypeOf(className(Constant.GROUP_INTERFACE_ISPIDER_GROUP))
+                )
+        );
+        ParameterSpec paramSpec = ParameterSpec.builder(paramType, Constant.PARAM_NAME).build();
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(Constant.METHOD_LOAD)
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(paramSpec)
+                .returns(TypeName.VOID);
+
+        for (Map.Entry<String, String> entry : mRootInfos.entrySet()) {
+            methodBuilder.addStatement(Constant.PARAM_NAME + ".put($S, $T.class)", entry.getKey(),
+                    className(Constant.GROUP_PACKAGE, entry.getValue()));
+        }
+
+        JavaFile file = JavaFile.builder(Constant.ROOT_PACKAGE,
+                TypeSpec.classBuilder(className)
+                        .addSuperinterface(className(Constant.GROUP_INTERFACE_ISPIDER_ROOT))
+                        .addModifiers(Modifier.PUBLIC)
+                        .addMethod(methodBuilder.build())
+                        .build())
+                .build();
+        try {
+            file.writeTo(mFilerUtils);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -173,7 +222,7 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
      * @param element
      * @param paramCollection
      */
-    private void generatorParamCode(Element element, Map<String, Integer> paramCollection) {
+    private void collectParamInject(Element element, Map<String, Integer> paramCollection) {
         for (Element field : element.getEnclosedElements()) {
             if (field != null && field.getKind().isField() &&
                     field.getAnnotation(ParamInject.class) != null) {
@@ -189,7 +238,7 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
             if (parentElement instanceof TypeElement && !((TypeElement) parentElement)
                     // 获取类的全限定名
                     .getQualifiedName().toString().startsWith("android")) {
-                generatorParamCode(parentElement, paramCollection);
+                collectParamInject(parentElement, paramCollection);
             }
         }
     }
@@ -239,7 +288,7 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
         ParameterizedTypeName paramType = ParameterizedTypeName.get(ClassName.get(Map.class)
                 , ClassName.get(String.class), ClassName.get(SpiderNode.class));
         // Map<String, SpiderNode> container
-        return ParameterSpec.builder(paramType, Constant.PARAM_GROUP_NAME)
+        return ParameterSpec.builder(paramType, Constant.PARAM_NAME)
                 .build();
     }
 }

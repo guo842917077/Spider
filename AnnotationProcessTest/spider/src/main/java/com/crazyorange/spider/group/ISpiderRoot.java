@@ -1,6 +1,7 @@
 package com.crazyorange.spider.group;
 
-import com.crazyorange.spider.group.ISpiderGroup;
+
+import java.util.Map;
 
 /**
  * @author guojinlong01
@@ -9,5 +10,5 @@ import com.crazyorange.spider.group.ISpiderGroup;
  * 避免了内存的浪费
  */
 public interface ISpiderRoot {
-    void load(String name,Class<? extends ISpiderGroup> group);
+    void load(Map<String, Class<? extends ISpiderGroup>> container);
 }
