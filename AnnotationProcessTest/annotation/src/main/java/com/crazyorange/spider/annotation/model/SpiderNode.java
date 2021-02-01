@@ -1,5 +1,7 @@
 package com.crazyorange.spider.annotation.model;
 
+import java.util.Map;
+
 /**
  * 节点 封装跳转对象的实例信息
  */
@@ -11,6 +13,10 @@ public class SpiderNode {
     private String group;
     // 目标路径
     private Class<?> destination;
+    /**
+     * 收集该类中使用了 ParamInject 注解的参数
+     */
+    private Map<String, Integer> params;
 
     public SpiderNode() {
 
@@ -18,7 +24,18 @@ public class SpiderNode {
 
     public SpiderNode(NodeType type,
                       String path,
-                      String group,  Class<?> destination) {
+                      String group, Class<?> destination, Map<String, Integer> params) {
+        this.type = type;
+        this.path = path;
+        this.group = group;
+        this.destination = destination;
+        this.params = params;
+    }
+
+
+    public SpiderNode(NodeType type,
+                      String path,
+                      String group, Class<?> destination) {
         this.type = type;
         this.path = path;
         this.group = group;
@@ -55,6 +72,14 @@ public class SpiderNode {
 
     public void setDestination(Class<?> destination) {
         this.destination = destination;
+    }
+
+    public Map<String, Integer> getParams() {
+        return params;
+    }
+
+    public void setParams(Map<String, Integer> params) {
+        this.params = params;
     }
 
     @Override

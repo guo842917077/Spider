@@ -2,6 +2,8 @@ package com.crazyorange.spider.annotation.model;
 
 import com.crazyorange.spider.annotation.RouterPage;
 
+import java.util.Map;
+
 import javax.lang.model.element.Element;
 
 /**
@@ -14,12 +16,29 @@ public class AnnotationNode {
     private NodeType type;
     private RouterPage pageAnnotation;
     private Element element;
+    private Map<String, Integer> fields;
 
-    public AnnotationNode(NodeType type,RouterPage pageAnnotation,
-                         Element element) {
+    public AnnotationNode(NodeType type, RouterPage pageAnnotation,
+                          Element element, Map<String, Integer> params) {
         this.type = type;
         this.pageAnnotation = pageAnnotation;
         this.element = element;
+        this.fields = params;
+    }
+
+    public AnnotationNode(NodeType type, RouterPage pageAnnotation,
+                          Element element) {
+        this.type = type;
+        this.pageAnnotation = pageAnnotation;
+        this.element = element;
+    }
+
+    public Map<String, Integer> getFields() {
+        return fields;
+    }
+
+    public void setFields(Map<String, Integer> fields) {
+        this.fields = fields;
     }
 
     public NodeType getType() {
