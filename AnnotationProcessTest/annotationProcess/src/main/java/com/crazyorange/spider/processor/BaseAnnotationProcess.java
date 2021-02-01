@@ -1,6 +1,7 @@
 package com.crazyorange.spider.processor;
 
 import com.crazyorange.spider.annotation.RouterPage;
+import com.crazyorange.spider.annotation.model.ParamType;
 import com.crazyorange.spider.processor.contants.Constant;
 import com.squareup.javapoet.ClassName;
 
@@ -21,6 +22,8 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
+import static com.crazyorange.spider.processor.contants.Constant.*;
+
 // 抽象类上不可以使用 AutoService 注解
 public abstract class BaseAnnotationProcess extends AbstractProcessor {
     // 文件生成器 生成文件时需要使用到
@@ -35,6 +38,8 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
     // 编译时打印日志用到
     protected Messager mLogMessageUtils;
 
+    protected TypeMirror mParcelableType;
+    protected TypeMirror mSerializableType;
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         super.init(processingEnvironment);
@@ -50,7 +55,7 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
         if (unusedTargetAnnotation(set)) {
             return false;
         }
-        return processAnnotation(set,env);
+        return processAnnotation(set, env);
     }
 
     public boolean unusedTargetAnnotation(Set<? extends TypeElement> set) {
@@ -124,6 +129,7 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
         }
         return "";
     }
+
     /**
      * 获取ClassName对象 如果引入 Android 或者外部的包作为参数
      * 需要通过 ClassName 让编译器自动加入导包语句
@@ -131,6 +137,7 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
     public ClassName className(String className) {
         return ClassName.get(typeElement(className));
     }
+
     /**
      * 一个具像的类 非抽象类
      */
@@ -139,6 +146,51 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
         return element instanceof TypeElement && !element.getModifiers().contains(
                 Modifier.ABSTRACT);
     }
+    // ARouter 中将 Java 的类型对应了 ParamType 中的自定义类型
+    public int translateType(Element element) {
+        TypeMirror typeMirror = element.asType();
+        // Primitive
+        if (typeMirror.getKind().isPrimitive()) {
+            return element.asType().getKind().ordinal();
+        }
+
+        switch (typeMirror.toString()) {
+            case BYTE:
+                return ParamType.BYTE.ordinal();
+            case SHORT:
+                return ParamType.SHORT.ordinal();
+            case INTEGER:
+                return ParamType.INT.ordinal();
+            case LONG:
+                return ParamType.LONG.ordinal();
+            case FLOAT:
+                return ParamType.FLOAT.ordinal();
+            case DOUBEL:
+                return ParamType.DOUBLE.ordinal();
+            case BOOLEAN:
+                return ParamType.BOOLEAN.ordinal();
+            case CHAR:
+                return ParamType.CHAR.ordinal();
+            case STRING:
+                return ParamType.STRING.ordinal();
+            default:
+                // 其他类型，可能是  parcelable serializable object 类型
+                if (mTypesUtils.isSubtype(typeMirror, mParcelableType)) {
+                    // PARCELABLE
+                    return ParamType.PARCELABLE.ordinal();
+                } else if (mTypesUtils.isSubtype(typeMirror, mSerializableType)) {
+                    // SERIALIZABLE
+                    return ParamType.SERIALIZABLE.ordinal();
+                } else {
+                    return ParamType.OBJECT.ordinal();
+                }
+        }
+    }
+
+    public static boolean isEmptyStr(final CharSequence cs) {
+        return cs == null || cs.length() == 0;
+    }
+
 
     protected abstract boolean processAnnotation(Set<? extends TypeElement> set, RoundEnvironment env);
 }
