@@ -61,7 +61,7 @@ public class SpiderAnnotationProcessor extends BaseAnnotationProcess {
 
     @Override
     protected boolean processAnnotation(Set<? extends TypeElement> set, RoundEnvironment env) {
-        processLog("Start spider annotation process");
+        mLogger.d("Start spider annotation processor");
         // 遍历所有使用了 RouterPage 的节点
         if (set == null || set.isEmpty()) {
             return false;

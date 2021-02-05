@@ -3,6 +3,7 @@ package com.crazyorange.spider.processor;
 import com.crazyorange.spider.annotation.RouterPage;
 import com.crazyorange.spider.annotation.model.ParamType;
 import com.crazyorange.spider.processor.contants.Constant;
+import com.crazyorange.spider.processor.log.SpiderLog;
 import com.squareup.javapoet.ClassName;
 
 import java.util.Collections;
@@ -40,6 +41,7 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
 
     protected TypeMirror mParcelableType;
     protected TypeMirror mSerializableType;
+    protected SpiderLog mLogger;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
@@ -48,6 +50,7 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
         mTypesUtils = processingEnvironment.getTypeUtils();
         mElementsUtils = processingEnvironment.getElementUtils();
         mLogMessageUtils = processingEnvironment.getMessager();
+        mLogger = new SpiderLog(mLogMessageUtils);
     }
 
     @Override
@@ -141,7 +144,8 @@ public abstract class BaseAnnotationProcess extends AbstractProcessor {
 
     /**
      * 去指定包下找对应的类
-     * @param pkgName 包名
+     *
+     * @param pkgName   包名
      * @param className 类名
      * @return
      */
